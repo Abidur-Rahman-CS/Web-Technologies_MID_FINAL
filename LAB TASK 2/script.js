@@ -1,4 +1,3 @@
-
 let invalidCount = 0;
 
 document.getElementById('loginForm').addEventListener('submit', function(event) {
