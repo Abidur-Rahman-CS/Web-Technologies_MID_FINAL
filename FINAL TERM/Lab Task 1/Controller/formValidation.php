@@ -1,68 +1,63 @@
 <?php
+ 
 session_start();
-
-class UserModel {
-    public $username;
-    public $name;
-    public $email;
-    public $phone;
-    private $errors = [];
-    public function __construct($data) {
-        $this->username = trim($data['username'] ?? '');
-        $this->name = trim($data['name'] ?? '');
-        $this->email = trim($data['email'] ?? '');
-        $this->phone = trim($data['phone'] ?? '');
+ 
+if ($_SERVER["REQUEST_METHOD"] == "POST")
+{
+    $userName = trim($_POST["userName"]);
+    $fullName = trim($_POST["fullName"]);
+    $email = trim($_POST["email"]);
+    $phoneNumber = trim($_POST["phoneNumber"]);
+ 
+    $hasError = false;
+ 
+    if (empty($userName))
+    {
+        $_SESSION["userNameErr"] = "User Name is required";
+        $hasError = true;
     }
-
-    public function validate() {
-        if (empty($this->username)) {
-            $this->errors['username'] = "Username is required.";
-        } elseif (strlen($this->username) < 4) {
-            $this->errors['username'] = "Username must be at least 4 characters long.";
-        }
-
-        if (empty($this->name)) {
-            $this->errors['name'] = "Full Name is required.";
-        }
-
-        if (empty($this->email)) {
-            $this->errors['email'] = "Email is required.";
-        } elseif (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
-            $this->errors['email'] = "Please enter a valid email address.";
-        }
-
-        if (empty($this->phone)) {
-            $this->errors['phone'] = "Phone number is required.";
-        } elseif (!preg_match('/^[0-9]{10,15}$/', $this->phone)) {
-            $this->errors['phone'] = "Phone number must be between 10 and 15 digits.";
-        }
-
-        return empty($this->errors);
+ 
+    if (empty($fullName))
+    {
+        $_SESSION["fullNameErr"] = "Full Name is required";
+        $hasError = true;
     }
-
-    public function getErrors() {
-        return $this->errors;
+ 
+    if (empty($email))
+    {
+        $_SESSION["emailErr"] = "Email is required";
+        $hasError = true;
     }
+    elseif (!filter_var($email, FILTER_VALIDATE_EMAIL))
+    {
+        $_SESSION["emailErr"] = "Invalid Email Format";
+        $hasError = true;
+    }
+ 
+    if (empty($phoneNumber))
+    {
+        $_SESSION["phoneNumberErr"] = "Phone Number is required";
+        $hasError = true;
+    }
+    elseif (!is_numeric($phoneNumber))
+    {
+        $_SESSION["phoneNumberErr"] = "Phone Number must be numeric";
+        $hasError = true;
+    }
+    elseif (strlen($phoneNumber) != 11)
+    {
+        $_SESSION["phoneNumberErr"] = "Phone Number must be 11 digits";
+        $hasError = true;
+    }
+    if ($hasError)
+    {
+        header("Location: form.php");
+        exit();
+    }
+    echo "<h2>Form has been Submitted Successfully</h2>";
+    echo "User Name: " . $userName . "<br>";
+    echo "Full Name: " . $fullName . "<br>";
+    echo "Email: " . $email . "<br>";
+    echo "Phone Number: " . $phoneNumber;
 }
-
-class FormController {
-    public function handleRequest() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $user = new UserModel($_POST);
-            if ($user->validate()) {
-                $_SESSION['success'] = "Form submitted successfully! Welcome, " . htmlspecialchars($user->name) . ".";
-                unset($_SESSION['errors']);
-                unset($_SESSION['old_data']);
-            } else {
-                $_SESSION['errors'] = $user->getErrors();
-                $_SESSION['old_data'] = $_POST;
-                unset($_SESSION['success']);
-            }
-            header("Location: form.php");
-            exit();
-        }
-    }
-}
-$controller = new FormController();
-$controller->handleRequest();
 ?>
